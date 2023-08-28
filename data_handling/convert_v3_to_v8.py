@@ -30,8 +30,8 @@ for line in lines:
         # print(box)
         #box = np.array(box)
         box = box.split(',')
-        x1 = int(box[0])
-        y1 = int(box[1])
+        x1 = int(box[0])+(box_size/2)
+        y1 = int(box[1])+(box_size/2)
         cls = '0'
 
         x = str(x1/im_size[0])
