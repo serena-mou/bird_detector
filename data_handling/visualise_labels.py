@@ -1,8 +1,9 @@
 import glob
 import cv2
 import os
-im_folder = '/home/serena/Data/Birds/lesser_frigates/LF_yolov8_50/split_data/test/images/*.jpg'
-label_folder ='/home/serena/Data/Birds/lesser_frigates/LF_yolov8_50/split_data/test/labels/*.txt'
+im_folder = '/home/serena/Data/Birds/common_noddy/CN_yolov8_50/split_data/train/images/*.jpg'
+label_folder = '/home/serena/Data/Birds/common_noddy/CN_yolov8_50/split_data/train/labels/*.txt'
+out_folder = '/home/serena/Data/Birds/common_noddy/CN_yolov8_50/train_raw_data'
 
 all_im = sorted(glob.glob(im_folder))
 all_label = sorted(glob.glob(label_folder))
@@ -25,7 +26,7 @@ for i, im_file in enumerate(all_im):
         y2 = int(y1 + 70)
         m=i    
         cv2.rectangle(im,(x1,y1),(x2,y2),(0,0,255),2)
-    print(m)
-    cv2.imshow('all rects', im)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    name = im_file.split('/')[-1]
+    cv2.imwrite(os.path.join(out_folder,name), im)
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
