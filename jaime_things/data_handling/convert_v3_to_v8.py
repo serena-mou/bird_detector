@@ -2,7 +2,7 @@ import os
 import re
 import numpy as np
 # Load yolov3 annotations txt file
-base = '/home/serena/Data/Birds/lf_cn_mb_rfb/50x50'  
+base = '/home/serena/Data/Birds/lf_mb_rfb/50x50'  
 v3_annotations = base+'/raw_data_all/_annotations.txt'
 output_folder = base+'/obj_train_data/'
 train_txt = base+'/train.txt'
