@@ -1,3 +1,9 @@
+# Takes in large geotiff and a csv
+# Crops in geotiff in a sliding window manner, saving each image with associated labels from csv in different folders
+# Written by: Serena Mou, based on some code from Jaime
+# Date: 3 Jan, 2024
+
+
 import rasterio as rio
 import pandas as pd
 from osgeo import osr
@@ -15,8 +21,8 @@ class CutGeotiff():
     def __init__(self):
             # Define output image size
         self.img_sz = 512
-        overlap_percent = 5/100
-        self.overlap = round(1024*overlap_percent)
+        overlap_percent = 10
+        self.overlap = round(self.img_sz*overlap_percent/100)
         self.iter_size = round(self.img_sz-self.overlap)
         # Define box size
         self.box_sz = 50
@@ -27,10 +33,12 @@ class CutGeotiff():
         self.DEBUG = False
 
 
-        root = "/home/serena/Data/Birds/Serena/MBay/"
+        root = "/home/serena/Data/Birds/Serena/Processed/EF_Data/Trip_1/"
 
         # Define output folder
-        self.folder = os.path.join(root, 'Trip_1_cut_512_box50_border10_rgb/')
+        folder_name = 'EFTrip_1_sz%d_overlap%d_box%d_border%d'%(self.img_sz,overlap_percent,self.box_sz,self.border)
+        
+        self.folder = os.path.join(root, folder_name)
         sub_dirs = ['images', 'labels', 'images_labelled']
         if self.WRITE:
             if not os.path.isdir(self.folder):
@@ -42,21 +50,23 @@ class CutGeotiff():
                     os.mkdir(full)
 
 
-        # List birds of interest
-        self.birds_of_interest = ['Brown Noddy (B)', 'Silver Gull (C)', 'Brown Booby (A)',
-                                'Onchoprion Sp. (D)', 'CT COLONY (FCOL)', 'CT OTHER (F)', 'Sterna Sp. (G)',
-                                'UNKNOWN (U)']
-        # self.birds_of_interest = ["Lesser Frigatebird", "Common Noddy", "Masked Booby", "Red-Footed Booby", "Greater Frigatebird", 
-        #                           "Brown Booby", "Black Noddy", "Red-Tailed Tropicbird", "Sooty Tern", "Silver Gull"]
-        self.colours = [(176,166,76),(102,129,176),(122,122,122),(4,4,186)]
-        # birds_of_interest = ["Masked Booby", "Red-Footed Booby"]
 
         # Define the file containing bird labels and locations, then read the file into a pandas dataframe
-        bird_points = os.path.join(root, 'RAW/Trip1/Tags_MichaelmasCay_10_11_22_Trip1.csv')
+        bird_points = os.path.join(root, 'EF_Trip1_All.csv')
         # bird_points = os.path.join(root, 'raw_data/2018-06-28/Labels/RAW_RaineIsland-BirdCount-MGA55_20180628.csv')
         self.birds = pd.read_csv(bird_points)
         #self.tiff = os.path.join(root,'raw_data/2018-06-28/GeoTIFF/RAW_RaineIsland-Ortho-1cm-rectified-COG_20180628.tif')
-        self.tiff = os.path.join(root,'RAW/Trip1/MichaelmasCayOrthomosaic10_11_22.tif')
+        self.tiff = os.path.join(root,'EF_Trip1_Ortho_Export_2.tif')
+        
+        self.birds_of_interest = []
+        
+        # change self.birds_of_interest if not all species are required
+        self.get_all_species()
+        print(self.birds_of_interest)
+        # self.birds_of_interest = ["Lesser Frigatebird", "Common Noddy", "Masked Booby", "Red-Footed Booby", "Greater Frigatebird", 
+        #                           "Brown Booby", "Black Noddy", "Red-Tailed Tropicbird", "Sooty Tern", "Silver Gull"]
+        self.colours = [(0,110,170),(128,128,128),(75,25,230),(128,0,0),(25,230,230),(180,30,145),(60,180,60),(212,190,250)]
+        # birds_of_interest = ["Masked Booby", "Red-Footed Booby"]
 
         # Define the ESPG code for the label coordinates
         self.source = osr.SpatialReference()
@@ -64,6 +74,16 @@ class CutGeotiff():
         
         self.black_thresh = 0.5
 
+
+    def get_all_species(self):
+        all_birds = self.birds['LAYER'].unique()
+        for bird in all_birds:
+            # sort for unwanted species here
+            self.birds_of_interest.append(bird)
+
+        # sort alphabetical
+        self.birds_of_interest = sorted(self.birds_of_interest)
+        return
 
     def image_coords(self, df, trans, transform):
         """
@@ -88,7 +108,7 @@ class CutGeotiff():
         return df
 
 
-    def bird_labels(self, min_x, min_y, df, folder, box_sz, classes, negative=False):
+    def bird_labels(self, min_x, min_y, df, classes):
         """
         A function to extract bounding boxes and labels for birds in images in format for use with YOLO.
         :param min_x: The most left pixel x coordinates of an image
@@ -100,12 +120,7 @@ class CutGeotiff():
 
         # Create an empty list to append label strings to
         labels = []
-        
-
-
-        label = os.path.join(self.folder, 'labels')
-        positive = []
-        
+      
         # Iterate through the DataFrame to determine the labels which fall within the image
         for r in df.itertuples():
             if r.x > (min_x+self.border) and r.x < (min_x+self.img_sz-self.border) and r.y > (min_y+self.border) and r.y < (min_y+self.img_sz-self.border):
@@ -125,14 +140,6 @@ class CutGeotiff():
                     print(r.x,r.y)
                     input()
           
-
-        if negative:
-            print(len(positive))
-
-
-        # Append the string to the list defined at beginning of function.
-        #label = label + "\n"
-        #labels.append(label)
 
         # Return list containing labels for birds in the image
         return labels
@@ -160,24 +167,15 @@ class CutGeotiff():
             # Create the transform object to transform from the label coordinates to the ortho coordinates
             transform = osr.CoordinateTransformation(self.source, target)
 
-
-            all_birds = self.birds['LAYER'].unique()
-            # print(all_birds)
             # For each bird:
             print("Finding birbs...")
             birds = self.image_coords(self.birds, rev, transform)
 
-            # birds = birds[birds.speciesName.isin(self.birds_of_interest)]
-
-            birds = birds[birds.LAYER.isin(self.birds_of_interest)]
-            bird_types = list(birds.LAYER.unique())
-            print(bird_types)
-
             if self.WRITE:
                 with open(self.folder + "classes.txt", "w") as f:
-                    for c in bird_types:
+                    for c in self.birds_of_interest:
                         f.write(c.replace(" ", "") + "\n")
-           
+         
 
             for u in range(columns):
                 for v in range(rows):
@@ -185,7 +183,7 @@ class CutGeotiff():
                     y_min = int(v*self.iter_size)
                     #print(u,v,x_min,y_min)
 
-                    label = self.bird_labels(x_min, y_min, birds, self.folder, self.box_sz, bird_types, False)
+                    label = self.bird_labels(x_min, y_min, birds, self.birds_of_interest)
 
                     img_r = full_tiff.read(1, window=Window(x_min, y_min, self.img_sz, self.img_sz))
                     img_g = full_tiff.read(2, window=Window(x_min, y_min, self.img_sz, self.img_sz))
