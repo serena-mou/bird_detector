@@ -33,7 +33,7 @@ class CutGeotiff():
         self.DEBUG = False
 
 
-        root = "/home/serena/Data/Birds/Serena/Processed/EF_Data/Trip_1/"
+        root = "/home/serena/Data/Birds/Serena/Processed/MCay_Data/Trip_1/"
 
         # Define output folder
         folder_name = 'EFTrip_1_sz%d_overlap%d_box%d_border%d'%(self.img_sz,overlap_percent,self.box_sz,self.border)
@@ -49,14 +49,14 @@ class CutGeotiff():
                 if not os.path.isdir(full):
                     os.mkdir(full)
 
-
+        self.polygon = pd.read_csv('./CSVs/MC_Trip1_boundary_table.csv')
 
         # Define the file containing bird labels and locations, then read the file into a pandas dataframe
-        bird_points = os.path.join(root, 'EF_Trip1_All.csv')
+        bird_points = './CSVs/MC_Trip1_All.csv'
         # bird_points = os.path.join(root, 'raw_data/2018-06-28/Labels/RAW_RaineIsland-BirdCount-MGA55_20180628.csv')
         self.birds = pd.read_csv(bird_points)
         #self.tiff = os.path.join(root,'raw_data/2018-06-28/GeoTIFF/RAW_RaineIsland-Ortho-1cm-rectified-COG_20180628.tif')
-        self.tiff = os.path.join(root,'EF_Trip1_Ortho_Export_2.tif')
+        self.tiff = os.path.join(root,'MichaelmasCayOrthomosaic10_11_22.tif')
         
         self.birds_of_interest = []
         
@@ -71,6 +71,16 @@ class CutGeotiff():
         # Define the ESPG code for the label coordinates
         self.source = osr.SpatialReference()
         self.source.ImportFromEPSG(28355)
+
+        # Define the ESPG codes for the label coordinates
+        InCRS = osr.SpatialReference()
+        InCRS.ImportFromEPSG(4326)
+        OutCRS = osr.SpatialReference()
+        OutCRS.ImportFromEPSG(6933)
+
+        # Create the transform object to transform from the label coordinates to the ortho coordinates
+        self.crs_transform = osr.CoordinateTransformation(InCRS, OutCRS)
+               
         
         self.black_thresh = 0.5
 
@@ -96,7 +106,7 @@ class CutGeotiff():
         for i, r in df.iterrows():
             # Determine the ortho coordinates
             # Not needed if lat lon are already in correct format
-            #lat, lon, _ = transform.TransformPoint(r.POINT_X, r.POINT_Y)
+            # lat, lon, _ = transform.TransformPoint(r.LAT, r.LON)
             lat, lon = r.LAT, r.LON
             # Determine the pixel coordinates
             x, y = trans * (lon, lat)
@@ -106,6 +116,47 @@ class CutGeotiff():
 
         # Return the DataFrame which now contains the (x, y) image coordinates
         return df
+
+
+    def inside_polygon(self, polygon, test_x, test_y):
+        '''
+        A function that checks if a test point lies inside a polygon with ray casting. 
+        If a point is inside a polygon, a ray from that point will intersect with an odd number of edges
+        param polygon is a np array in format [[x1 y1], [x2, y2]... [xn, yn]]
+        param test_x is the x coordinate being checked 
+        param test_y is the y coordinate being checked
+
+        return True if the point is inside the polygon
+        return False if the point is outside the polygon 
+        '''
+
+        vert_count = len(polygon)
+        inside = False
+
+        p1 = polygon[0]
+
+        # loop through each edge
+        for i in range(1, vert_count+1):
+            # get the next point to form an edge. mod for last point
+            p2 = polygon[i%vert_count]
+
+            if test_y > min(p1[1], p2[1]):
+                if test_y <= max(p1[1],p2[1]):
+                    if test_x <= max(p1[0], p2[0]):
+
+                        x_intersect = (test_y - p1[1]) * (p2[0] - p1[0]) / (p2[1] - p1[1]) + p1[0]
+
+                        if p1[0] == p2[0] or test_x <= x_intersect:
+                            inside = not inside
+
+
+            p1 = p2
+
+        return inside
+
+
+
+
 
 
     def bird_labels(self, min_x, min_y, df, classes):
@@ -165,11 +216,19 @@ class CutGeotiff():
             target.ImportFromEPSG(crs)
 
             # Create the transform object to transform from the label coordinates to the ortho coordinates
-            transform = osr.CoordinateTransformation(self.source, target)
+            #transform = osr.CoordinateTransformation(self.source, target)
 
             # For each bird:
             print("Finding birbs...")
-            birds = self.image_coords(self.birds, rev, transform)
+            birds = self.image_coords(self.birds, rev, self.crs_transform)
+
+            # transform the polygon
+            poly = self.image_coords(self.polygon, rev, self.crs_transform )
+
+            x_poly = np.array(poly['x'])
+            y_poly = np.array(poly['y'])
+            self.polygon_arr = np.stack((x_poly,y_poly),axis=1)
+
 
             if self.WRITE:
                 with open(self.folder + "classes.txt", "w") as f:
@@ -181,6 +240,17 @@ class CutGeotiff():
                 for v in range(rows):
                     x_min = int(u*self.iter_size)
                     y_min = int(v*self.iter_size)
+                    x_max = x_min + self.img_sz
+                    y_max = y_min + self.img_sz
+                    corners = ((x_min, y_min), (x_min, y_max), (x_max, y_min), (x_max, y_max))
+                    # check if this window overlaps with the polygon at all
+                    # If any part of the window is inside the polygon, we continue
+                    inside = False
+                    for corner in corners:
+                        inside = inside or self.inside_polygon(self.polygon_arr, corner[0], corner[1])
+
+                    if not inside:
+                        continue
                     #print(u,v,x_min,y_min)
 
                     label = self.bird_labels(x_min, y_min, birds, self.birds_of_interest)
