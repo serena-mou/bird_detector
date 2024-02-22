@@ -1,0 +1,197 @@
+=================================================
+All classes across all files:
+=================================================
+
+Anous					Small Black body, often flying				EF1y			D
+Anous sp.				Small grey body, white head, varied positions		LE2y			D
+Brown Booby				Large, Brown body, white beak				EF1y, MC3y		B
+Brown Booby (A)				Large, brown, labels include white birds:( (young)	MC1y, EF2y, MC2y	B
+Brown Booby empty nest			Pile o sticks						MC3y			C
+Brown Noddy (B)				Small, brown						MC1y			D
+CRTE Colony (FCOL)			Crested Tern, same as Crested Tern FS (Dense)		MC2y			E
+CRTE Runner (FRUN)			Crested Tern, appears to be small? adolescent?		MC2y			F
+CT COLONY (FCOL)			Crested Tern, same as Crested Tern FS (Dense)		MC1y			E
+CT OTHER (F)				Crested Tern, same as Crested Tern FS			MC1y			E
+Crested Tern FS				Grey / White, Black head, typically sitting		LE2y			E
+Crested Tern FS (FFS)			Crested Tern, same as Crested Tern FS			MC2y			E
+Crested Tern Other			Grey / White, Black head, wings typcially open		LE2y			G	
+Crested Tern Other (FO)			Crested Tern, same as Crested Tern FS (Flying)		MC2y			G
+Crested Tern Sp. (F)			Grey / White, Black head, typically sitting		EF2y			E
+Crested Tern U				Grey / White, Black head, typically sitting		LE2y			E
+Crested Tern adult free standing	Crested Tern, same as Crested Tern FS			MC3y			E
+Crested Tern colony										MC3y			E
+Crested Tern other			Crested Tern, same as Crested Tern FS (Flying)		MC3y			G
+Crested Tern runner			Crested Tern, appears to be small? adolescent?		MC3y			F
+Crested Tern young			Small, all white blob					LE2y			F
+Egret Sp. (H)											EF2			K
+Great Frigatebird			Large, black body white head, wings open		EF1y			
+Greater Crested Tern			Technically different but close to CT			LE1			E
+Noddy Sp. (B)				Same as Brown Noddy (B), EF2 poor match			MC2y, EF2y		D
+Noddy species				Small, brown / black					MC3y, LE1y		D
+Onchoprion Sp. (D)			Small, Black, ~wings, crisscross feathers		EF2y, MC1y		H
+Onychoprion				Small Black, White head, ~wings, crisscross feathers	EF1y, MC3y		H
+Onychoprion Sp. (D)			Small, Black, crisscorss feathers			MC2y 			H
+Onychoprion sp.				Small, greyblack, White head, wings ~open		LE2y			H
+Ruddy Turnstone				Small, brown / black, very similar to noddy		MC3y
+Silver Gull				Large, Silver / White typically sitting			EF1y, LE1y, LE2y, MC3y	I
+Silver Gull (C)				Large, Silver / White typically sitting			MC1y, EF2, MC2y		I
+Sterna Sp. (G)				Small, White / Silver, typically sitting		MC1y			J
+UNKNOWN (U)											MC1, EF2, MC2		A
+Unknown Species											LE1			A
+Unknown species											MC3			A
+
+=================================================
+Observations
+=================================================
+ - Very low detail on some labels - extremely dubious species has been accurately determined
+ - Flying birds very different to sitting birds of same species, need to be different label
+ - Need a consistent practise on labelling offshore / onshore birds
+ - Need a consistent practise on labelling flying / sitting birds
+ - Colour info critical in determining species
+ - Signfiicantly varied lighting conditions across trips
+ - In some cases birds are the same species but very visually different with the same label (see Booby EF2)
+ - MC Trip 3 has LAT / LON backwards!
+
+=================================================
+MCay Trip 1 Labelling TODO
+=================================================
+ - 'Brown Booby' young need to be seperated to 'Brown Booby Young'
+ - Flying birds need to be labelled as the 'Other' category of their class
+
+=================================================
+MCay Trip 2 Labelling TODO
+=================================================
+ - Flying birds need to be labelled as the 'Other' category of their class
+ - Clusters in dark patches are not actually resolvable as birds, labels cant be guessing
+
+=================================================
+MCay Trip 3 Labelling TODO
+=================================================
+ - Flying birds need to be labelled as the 'Other' category of their class
+ - There are many 'Crested Tern Other' labels on standard sitting crested terns
+
+=================================================
+Actions Taken to consolidate classes:
+=================================================
+A
+
+UNKNOWN (U)
+Unknown Species
+Unknown species
+
+-> Unknown
+
+=================================================
+B
+
+Brown Booby
+Brown Booby (A)
+
+-> Brown Booby
+
+Affects EF, MC: Internally consistent, some colour mismatch between EF and MC
+
+=================================================
+C
+
+Brown Booby empty nest
+
+-> Brown Booby Empty Nest
+
+Naming consistency
+
+=================================================
+D
+
+Anous
+Anous sp. 
+Brown Noddy (B)
+Noddy Sp. (B)
+Noddy species
+Noddy Species
+
+-> Brown Noddy
+
+Affects EF, MC, LE: Internally consistent, poor match between EF, MC and LE
+
+=================================================
+E
+
+Greater Crested Tern
+CRTE Colony (FCOL)
+CT COLONY (FCOL)
+CT OTHER (F)
+Crested Tern FS	
+Crested Tern FS (FFS)
+Crested Tern Sp. (F)
+Crested Tern U
+Crested Tern adult free standing
+Crested Tern colony
+
+-> Crested Tern Adult
+
+Affects EF, MC, LEI, fairly consistent across all, LEI some overexposure
+
+=================================================
+F
+
+CRTE Runner (FRUN)
+Crested Tern runner
+Crested Tern young
+
+-> Crested Tern Young
+
+Affects MC, LE, fairly consistent across all
+
+=================================================
+G
+
+Crested Tern Other
+Crested Tern Other (FO)
+Crested Tern other
+
+-> Crested Tern Other
+
+Affects MC, LE, fairly consistent across all
+
+=================================================
+H
+
+Onchoprion Sp. (D)
+Onychoprion
+Onychoprion Sp. (D)
+Onychoprion sp.
+
+-> Onychoprion
+
+Affects LE, MC, EF, consistent across LE MC, EF poor match
+
+=================================================
+I
+
+Silver Gull
+Silver Gull (C)
+
+-> Silver Gull
+
+Affects LE, MC, EF, consistent across all
+
+=================================================
+J
+
+Sterna Sp. (G)
+
+-> Sterna
+
+Affects MC, naming convention
+
+=================================================
+K
+
+Egret Sp. (H)
+
+-> Egret
+
+Affects EF, Naming Convention
+
+=================================================
